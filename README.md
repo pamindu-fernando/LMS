@@ -5,6 +5,7 @@ A robust, secure system designed to streamline library operations. This platform
 
 ### Project Screenshots
 
+| Column 1 | Column 2 | Column 3 |
 | :---: | :---: | :---: |
 | <img src="assets/1.png" width="350"> | <img src="assets/2.png" width="350"> | <img src="assets/3.png" width="350"> |
 | <img src="assets/4.png" width="350"> | <img src="assets/5.png" width="350"> | <img src="assets/6.png" width="350"> |
