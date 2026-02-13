@@ -4,7 +4,7 @@ include 'db_config.php';
 header('Content-Type: application/json');
 
 $response = ['success' => false, 'message' => '', 'data' => []];
-
+//title
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $author = mysqli_real_escape_string($conn, $_POST['author']);
