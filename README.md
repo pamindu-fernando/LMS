@@ -5,12 +5,8 @@ A robust, secure system designed to streamline library operations. This platform
 
 ### Project Screenshots
 
-| Admin Dashboard | User Book List | Analytics Overview |
-| :---: | :---: | :---: |
 | <img src="assets/1.png" width="350"> | <img src="assets/2.png" width="350"> | <img src="assets/3.png" width="350"> |
-| **System Admin** | **User View** | **Stats & Data** |
 | <img src="assets/4.png" width="350"> | <img src="assets/5.png" width="350"> | <img src="assets/6.png" width="350"> |
-| **Settings** | **Profile Page** | **Mobile Responsive** |
 
 ## Features
 - **Secure Authentication:** Multi-role login system (Admin/Student) with session protection.
