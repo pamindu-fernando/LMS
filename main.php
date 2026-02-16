@@ -128,6 +128,11 @@ while ($row = mysqli_fetch_assoc($result)) {
                                                 <i data-lucide="download" class="size-5"></i>
                                             </a>
                                         </template>
+                                        
+                                        <button @click="handleEditClick(book)" class="text-gray-400 hover:text-blue-600 transition-colors">
+                                            <i data-lucide="edit-2" class="size-5"></i>
+                                        </button>
+
                                         <button @click="handleDeleteClick(book)" class="text-gray-400 hover:text-red-600 transition-colors">
                                             <i data-lucide="trash-2" class="size-5"></i>
                                         </button>
@@ -149,17 +154,24 @@ while ($row = mysqli_fetch_assoc($result)) {
 
     <div x-show="dialogOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
         <div @click.away="dialogOpen = false" class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
-            <h3 class="text-xl font-bold mb-4">Upload New Book</h3>
+            <h3 class="text-xl font-bold mb-4" x-text="isEditing ? 'Edit Book Details' : 'Upload New Book'"></h3>
+            
             <form @submit.prevent="handleSaveBook" class="space-y-4">
                 <input type="text" x-model="editingBook.title" placeholder="Book Title" required class="w-full border rounded-md p-2 text-sm outline-none focus:ring-2 focus:ring-green-500">
                 <div class="grid grid-cols-2 gap-4">
                     <input type="text" x-model="editingBook.author" placeholder="Author" class="w-full border rounded-md p-2 text-sm outline-none focus:ring-2 focus:ring-green-500">
                     <input type="text" x-model="editingBook.category" placeholder="Category" class="w-full border rounded-md p-2 text-sm outline-none focus:ring-2 focus:ring-green-500">
                 </div>
-                <input type="file" accept="application/pdf" @change="editingBook.pdfFile = $event.target.files[0]" class="w-full border rounded-md p-2 text-sm">
+                
+                <div x-show="!isEditing">
+                     <input type="file" accept="application/pdf" @change="editingBook.pdfFile = $event.target.files[0]" class="w-full border rounded-md p-2 text-sm">
+                </div>
+                
                 <div class="flex justify-end gap-3 pt-4 border-t">
                     <button type="button" @click="dialogOpen = false" class="px-4 py-2 text-sm font-medium">Cancel</button>
-                    <button type="submit" :disabled="isSubmitting" class="bg-green-600 text-white px-6 py-2 rounded-md text-sm font-medium" x-text="isSubmitting ? 'Uploading...' : 'Save Book'"></button>
+                    <button type="submit" :disabled="isSubmitting" class="bg-green-600 text-white px-6 py-2 rounded-md text-sm font-medium" 
+                        x-text="isSubmitting ? 'Processing...' : (isEditing ? 'Update Book' : 'Save Book')">
+                    </button>
                 </div>
             </form>
         </div>
@@ -183,7 +195,10 @@ while ($row = mysqli_fetch_assoc($result)) {
                 searchTerm: '',
                 dialogOpen: false,
                 deleteDialogOpen: false,
-                editingBook: {},
+                isEditing: false, // Track if we are editing
+                editingId: null,  // ID of the book being edited
+                
+                editingBook: { title: '', author: '', category: '', pdfFile: null },
                 bookToDelete: null,
                 isSubmitting: false,
                 books: <?php echo json_encode($db_books); ?>,
@@ -207,38 +222,86 @@ while ($row = mysqli_fetch_assoc($result)) {
                 },
 
                 handleAddNew() {
-                    this.editingBook = { title: '', author: '', category: '' };
+                    this.isEditing = false;
+                    this.editingId = null;
+                    this.editingBook = { title: '', author: '', category: '', pdfFile: null };
+                    this.dialogOpen = true;
+                },
+
+                handleEditClick(book) {
+                    this.isEditing = true;
+                    this.editingId = book.id;
+                    // Populate form with existing data
+                    this.editingBook = { 
+                        title: book.title, 
+                        author: book.author, 
+                        category: book.category,
+                        pdfFile: null 
+                    };
                     this.dialogOpen = true;
                 },
 
                 handleSaveBook() {
                     this.isSubmitting = true;
-                    const formData = new FormData();
-                    formData.append('title', this.editingBook.title);
-                    formData.append('author', this.editingBook.author || '');
-                    formData.append('category', this.editingBook.category || '');
-                    if (this.editingBook.pdfFile) formData.append('pdfFile', this.editingBook.pdfFile);
 
-                    fetch('add_book.php', { method: 'POST', body: formData })
+                    if (this.isEditing) {
+                        // --- EDIT MODE ---
+                        fetch('edit_book.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                id: this.editingId,
+                                title: this.editingBook.title,
+                                author: this.editingBook.author,
+                                category: this.editingBook.category
+                            })
+                        })
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
-                                // Add to start of list
-                                this.books.unshift({
-                                    id: data.bookId,
-                                    title: this.editingBook.title,
-                                    author: this.editingBook.author,
-                                    category: this.editingBook.category,
-                                    file_path: data.data.pdfFile,
-                                    size_bytes: data.data.size_bytes,
-                                    available: 1,
-                                    quantity: 1
-                                });
+                                // Find book and update locally
+                                const index = this.books.findIndex(b => b.id === this.editingId);
+                                if (index !== -1) {
+                                    this.books[index].title = this.editingBook.title;
+                                    this.books[index].author = this.editingBook.author;
+                                    this.books[index].category = this.editingBook.category;
+                                }
                                 this.dialogOpen = false;
                                 this.$nextTick(() => lucide.createIcons());
+                            } else {
+                                alert("Error updating book: " + (data.message || 'Unknown error'));
                             }
                             this.isSubmitting = false;
                         });
+
+                    } else {
+                        // --- ADD NEW MODE ---
+                        const formData = new FormData();
+                        formData.append('title', this.editingBook.title);
+                        formData.append('author', this.editingBook.author || '');
+                        formData.append('category', this.editingBook.category || '');
+                        if (this.editingBook.pdfFile) formData.append('pdfFile', this.editingBook.pdfFile);
+
+                        fetch('add_book.php', { method: 'POST', body: formData })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    this.books.unshift({
+                                        id: data.bookId,
+                                        title: this.editingBook.title,
+                                        author: this.editingBook.author,
+                                        category: this.editingBook.category,
+                                        file_path: data.data.pdfFile,
+                                        size_bytes: data.data.size_bytes,
+                                        available: 1,
+                                        quantity: 1
+                                    });
+                                    this.dialogOpen = false;
+                                    this.$nextTick(() => lucide.createIcons());
+                                }
+                                this.isSubmitting = false;
+                            });
+                    }
                 },
 
                 handleDeleteClick(book) {
@@ -263,7 +326,7 @@ while ($row = mysqli_fetch_assoc($result)) {
 
                 logout() {
                     if (confirm("Are you sure you want to log out?")) {
-                        window.location.href = 'logout.php'; // Updated to use logout.php
+                        window.location.href = 'logout.php';
                     }
                 }
             }
