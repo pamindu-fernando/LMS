@@ -56,14 +56,26 @@ A robust, secure system designed to streamline library operations. This platform
    );
  ```
  ```sql
-   CREATE TABLE users (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      fullname VARCHAR(100),
-      username VARCHAR(50) UNIQUE,
-      password VARCHAR(255),
-      role ENUM('admin', 'student') DEFAULT 'student'
-   );
-```
+  CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fullname VARCHAR(100),
+    username VARCHAR(50) UNIQUE,
+    password VARCHAR(255),
+    role ENUM('admin', 'student') DEFAULT 'student',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+ ```
+- Add an admin and a user account to get started
+
+ ```sql 
+      NSERT INTO users (fullname, username, password, role)
+      VALUES ('Administrator', 'admin', 'admin', 'admin');
+      
+      INSERT INTO users (fullname, username, password, role)
+      VALUES ('User', 'user', 'user','user');
+
+ ```
 3. **⚠️ Important:**
 
    - Edit the \`php.ini\`
