@@ -106,13 +106,13 @@ while ($row = mysqli_fetch_assoc($result)) {
                                 </td>
                                 <td class="px-6 py-4 text-center text-gray-500" x-text="(book.size_bytes / (1024*1024)).toFixed(2) + ' MB'"></td>
                                 <td class="px-6 py-4 text-right">
-                                    <template x-if="book.file_path">
-                                        <a :href="book.file_path" download class="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold transition-colors group">
-                                            <i data-lucide="download" class="size-5 group-hover:scale-110 transition-transform"></i>
-                                            <span>PDF</span>
-                                        </a>
-                                    </template>
-                                </td>
+    <template x-if="book.file_path">
+        <a :href="'download.php?file=' + encodeURIComponent(book.file_path)" class="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold transition-colors group">
+            <i data-lucide="download" class="size-5 group-hover:scale-110 transition-transform"></i>
+            <span>PDF</span>
+        </a>
+    </template>
+</td>
                             </tr>
                         </template>
                     </tbody>

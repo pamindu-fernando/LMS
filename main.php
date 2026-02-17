@@ -124,7 +124,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end gap-4">
                                         <template x-if="book.file_path">
-                                            <a :href="book.file_path" download class="text-gray-400 hover:text-green-600 transition-colors">
+                                           <a :href="'download.php?file=' + encodeURIComponent(book.file_path)" class="text-gray-400 hover:text-green-600 transition-colors">
                                                 <i data-lucide="download" class="size-5"></i>
                                             </a>
                                         </template>
