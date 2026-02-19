@@ -93,7 +93,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                             <th class="px-6 py-4">Author</th>
                             <th class="px-6 py-4">Category</th>
                             <th class="px-6 py-4 text-center">Size</th>
-                            <th class="px-6 py-4 text-right">Download</th>
+                            <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -106,13 +106,18 @@ while ($row = mysqli_fetch_assoc($result)) {
                                 </td>
                                 <td class="px-6 py-4 text-center text-gray-500" x-text="(book.size_bytes / (1024*1024)).toFixed(2) + ' MB'"></td>
                                 <td class="px-6 py-4 text-right">
-    <template x-if="book.file_path">
-        <a :href="'download.php?file=' + encodeURIComponent(book.file_path)" class="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-semibold transition-colors group">
-            <i data-lucide="download" class="size-5 group-hover:scale-110 transition-transform"></i>
-            <span>PDF</span>
-        </a>
-    </template>
-</td>
+                                    <div class="flex items-center justify-end gap-3">
+                                        <button @click="openDetails(book)" class="text-blue-500 hover:text-blue-700 transition-colors" title="View Details">
+                                            <i data-lucide="eye" class="size-5"></i>
+                                        </button>
+
+                                        <template x-if="book.file_path">
+                                            <a :href="'download.php?file=' + encodeURIComponent(book.file_path)" class="text-green-600 hover:text-green-700 transition-colors" title="Download">
+                                                <i data-lucide="download" class="size-5"></i>
+                                            </a>
+                                        </template>
+                                    </div>
+                                </td>
                             </tr>
                         </template>
                     </tbody>
@@ -128,11 +133,50 @@ while ($row = mysqli_fetch_assoc($result)) {
         </div>
     </main>
 
+    <div x-show="detailsOpen" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div @click.away="detailsOpen = false" class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div class="bg-green-600 p-4 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold" x-text="selectedBook?.title"></h3>
+                <button @click="detailsOpen = false" class="hover:bg-green-700 p-1 rounded transition-colors"><i data-lucide="x" class="size-5"></i></button>
+            </div>
+            <div class="p-6">
+                <div class="flex gap-4 mb-4 text-sm text-gray-500 border-b pb-4">
+                    <div class="flex items-center gap-1">
+                        <i data-lucide="user" class="size-4"></i>
+                        <span x-text="selectedBook?.author || 'Unknown'"></span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <i data-lucide="tag" class="size-4"></i>
+                        <span x-text="selectedBook?.category || 'General'"></span>
+                    </div>
+                </div>
+                
+                <h4 class="text-sm font-semibold text-gray-700 mb-2">Description</h4>
+                <div class="text-gray-600 text-sm leading-relaxed max-h-60 overflow-y-auto pr-2">
+                    <p x-text="selectedBook?.description || 'No description available for this book.'"></p>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button @click="detailsOpen = false" class="px-4 py-2 border rounded-md text-sm text-gray-600 hover:bg-gray-50 mr-2">Close</button>
+                    <template x-if="selectedBook?.file_path">
+                        <a :href="'download.php?file=' + encodeURIComponent(selectedBook.file_path)" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-2 hover:bg-green-700">
+                            <i data-lucide="download" class="size-4"></i> Download PDF
+                        </a>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function dashboard() {
             return {
                 searchTerm: '',
                 books: <?php echo json_encode($db_books); ?>,
+                
+                // NEW: State for details modal
+                detailsOpen: false,
+                selectedBook: null,
 
                 init() {
                     this.$nextTick(() => lucide.createIcons());
@@ -155,9 +199,15 @@ while ($row = mysqli_fetch_assoc($result)) {
                     );
                 },
 
+                // NEW: Function to open details modal
+                openDetails(book) {
+                    this.selectedBook = book;
+                    this.detailsOpen = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
                 logout() {
                     if (confirm("Are you sure you want to log out?")) {
-                        // FIX: Redirect to a PHP logout script to clear session properly
                         window.location.href = 'logout.php';
                     }
                 }
