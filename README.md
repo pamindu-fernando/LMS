@@ -1,4 +1,3 @@
-cat <<EOF > README.md
 # Library Management System (LMS)
 
 A robust, secure system designed to streamline library operations. This platform allows admins to manage book catalogs while providing students with a secure environment to browse and download digital resources.
@@ -49,6 +48,7 @@ A robust, secure system designed to streamline library operations. This platform
       title VARCHAR(255) NOT NULL,
       author VARCHAR(255),
       category VARCHAR(255),
+      description TEXT NULL,
       quantity INT DEFAULT 1,
       available INT DEFAULT 1,
       file_path VARCHAR(255) NOT NULL,
